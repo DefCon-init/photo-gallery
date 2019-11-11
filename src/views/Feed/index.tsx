@@ -2,31 +2,28 @@
 import React, { useEffect, useState } from 'react';
 import { match } from "react-router-dom";
 import { useAuth0 } from '../../utils/AuthContext';
+// import io from 'socket.io-client';
 
-import UserCard from '../../components/UserCard'
+// import UserCard from '../../components/UserCard'
 import Loader from '../../components/Loader';
 
 import {
   PostList,
-  Article
+  Article,
+  NoPost
 } from './styles';
 
-import { data } from "../../data/posts";
+// import { data } from "../../data/posts";
+import graphQlAPI from '../../utils/api';
 
 type Parms = { email: string }
 
 type FeedParams = { match?: match<Parms> };
 
 interface Post {
-  _id: string;
-  author: string;
-  place: string;
-  image: string | Blob;
-  description: string;
-  hashtags: string;
+  id: string;
+  image: string;
   createdAt?: string;
-  updateAt?: string;
-  likes?: number;
 }
 
 const Feed: React.FC<FeedParams> = ({ match }): JSX.Element => {
@@ -34,11 +31,30 @@ const Feed: React.FC<FeedParams> = ({ match }): JSX.Element => {
 
   const [feed, setFeed] = useState<Post[]>([]);
 
-  const loadRequest = async () => {
-    // const response = await api.get('posts');
-    const response = data;
-
-    setFeed(response);
+  const loadRequest = async (email) => {
+    let requestBody = {
+      query: `
+        query userByEmail($email: String!) {
+          userByEmail(email: $email) {
+            id
+            email
+            posts {
+              image
+              id
+              date
+            }
+          }
+        }
+      `,
+      variables: {
+        email: email
+      }
+    };
+    const response = await graphQlAPI.post('', requestBody);
+    const { data: { data: { userByEmail } } } = response;
+    const { posts } =  userByEmail
+    console.log(posts)
+    setFeed(posts);
   };
 
   // const handleLike = (id: string) => {
@@ -46,15 +62,17 @@ const Feed: React.FC<FeedParams> = ({ match }): JSX.Element => {
   // };
 
   useEffect(() => {
-    console.log('Feed', loading, user, match)
-    const { params: { email } } = match
-    console.log('email', email)
-  });
+    console.log('1 Feed', match, user)
+    let { params: { email } } = match
+    console.log('1 email', email, !!email)
+    if (!email) {
+      console.log('2 email', user.email)
+      email = user.email
+    }
+    console.log('3 email', email)
 
-  useEffect(() => {
-    // const socket = io('http://localhost:3333');
-
-    // socket.on('post', (newPost: Post) => {
+    // socket.on('upload', (newPost: Post) => {
+    //   console.log('is uplooooooaaaaaddd', Post)
     //   setFeed(f => [newPost, ...f]);
     // });
 
@@ -62,8 +80,8 @@ const Feed: React.FC<FeedParams> = ({ match }): JSX.Element => {
     //   setFeed((f: Post[]) => f.map((post: Post) => (post._id === likedPost._id ? likedPost : post)));
     // });
 
-    loadRequest();
-  }, []);
+    loadRequest(email);
+  }, [match, user]);
 
   if (loading || !user) {
     return (
@@ -73,13 +91,18 @@ const Feed: React.FC<FeedParams> = ({ match }): JSX.Element => {
 
   return (
     <>
-      <UserCard name={user.nickname} image={user.picture} />
+      {/* <UserCard name={user.nickname} image={user.picture} /> */}
       <PostList>
-        {feed.map((post: Post) => (
-          <Article key={post._id}>
+        {feed && feed.length > 0 && feed.map((post: Post) => (
+          <Article key={post.id}>
             <img src={`${post.image}`} alt="" />
           </Article>
         ))}
+        {feed && feed.length === 0 && (
+          <NoPost>
+            <p>No post to show!</p>
+          </NoPost>
+        )}
       </PostList>
     </>
   );

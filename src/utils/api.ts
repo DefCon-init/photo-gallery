@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: 'http://localhost:3333/',
+export const api = axios.create({
+  baseURL: 'http://localhost:8000/',
 });
 
-export default api;
+const graphQlAPI = axios.create({
+  baseURL: 'http://localhost:8000/graphql',
+});
+
+export default graphQlAPI

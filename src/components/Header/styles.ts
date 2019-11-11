@@ -53,4 +53,12 @@ export const Button = styled.button`
     transition: all 0.3s ease 0s;
     cursor: pointer;
   }
+
+  &:disable { 
+    cursor: not-allowed;
+  }
+
+  &[disabled] { 
+    cursor: not-allowed;
+  }
 `;

@@ -1,67 +1,91 @@
-import React, { useState } from 'react';
+/* eslint react-hooks/exhaustive-deps: 0 */ 
+import React, { useState, useEffect } from 'react';
 
 import { useAuth0 } from '../../utils/AuthContext';
 
 import { PostForm } from './styles';
-// import api from '../../services/api';
+import graphQlAPI, { api } from '../../utils/api';
+import { Redirect } from 'react-router';
 
 interface NewPost {
-  email: string;
-  image: string | Blob;
+  userId: string;
+  image: string;
+  date: string;
 }
 
-const New = () => {
+const New: React.FC = (): JSX.Element => {
   const { user } = useAuth0();
-  const [post, setPost] = useState<NewPost>({
-    image: '',
-    email: `${user.email}`
-  });
+  const [loading, setLoading] = useState(false)
+  const [redirect, setRedirect] = useState(false)
+  const [post, setPost] = useState<NewPost>({ image: '', date: `${new Date().toISOString()}`, userId: '' });
 
-  // const getBufferFromBytes = (imageBytes: any): Buffer => {
-  //   console.log(imageBytes)
-  //   let imageBuffer = new Buffer(imageBytes.length)
-  //   for(let b=0; b< imageBytes.length; b++) {
-  //     imageBuffer[b] = imageBytes[b]
-  //   }
-  //   return imageBuffer
-  // }
+  
+  const loadRequest = async (email) => {
+    let requestBody = {
+      query: `
+        query userByEmail($email: String!) {
+          userByEmail(email: $email) {
+            id
+            email
+          }
+        }
+      `,
+      variables: {
+        email: email
+      }
+    };
+    const response = await graphQlAPI.post('', requestBody);
+    const { data: { data: { userByEmail: { id } } } } = response;
+    console.log('id', id)
+    setPost({ ...post, userId: id });
+  };
 
-  // const getBytesFromFile = (file: File) => {
-  //   return new Promise((resolve, reject) => {
-  //   const fileReader = new FileReader();
-  //   let imageData;
-  //   fileReader.readAsDataURL(file);
-  //   fileReader.onload = function () {
-  //     imageData = fileReader.result;
-  //     resolve(imageData)
-  //   }
-  //   })
-  // }
+  useEffect(() => {
+    const { email } = user
+    loadRequest(email);
+  }, [user]);
 
   const handleSubmit = async (e: React.MouseEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // const data = new FormData();
-
-    // data.append('image', post.image);
-    // data.append('author', post.author);
-    // data.append('place', post.place);
-    // data.append('description', post.description);
-    // data.append('hashtags', post.hashtags);
-
-    // await api.post('posts', data);
+    console.log(post)
+    const requestBody = {
+      query: `
+          mutation createPost($image: String!, $date: String!, $userId: String!) {
+            createPost(postInput: {image: $image, date: $date, userId: $userId}) {
+              id
+              image
+              date
+            }
+          }
+        `,
+      variables: {
+        ...post
+      }
+    };
+    await graphQlAPI.post('', requestBody);
+    setRedirect(true)
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    console.log(e.target, e.target.files, e.target.files![0]);
-    setPost({ ...post, image: e.target.files![0] });
+    setLoading(true)
+    const request = new FormData();
+    request.append('image', e.target.files![0]);
+    const { data: { data } } = await api.post('upload', request);
+    setPost({ ...post, image: data[0]['image'] })
+    setLoading(false)
   };
+
+  if(redirect) {
+    return <Redirect to="/feed" ></Redirect>
+  }
 
   return (
     <PostForm onSubmit={handleSubmit}>
+      {console.log(post)}
       <input type="file" onChange={handleImageChange} />
-      <button type="submit">Post</button>
+      {!loading && <button type="submit" disabled={!post.image}>Post</button>}
+      {loading && <button type="submit" disabled={!post.image}>Loading</button>}
     </PostForm>
   );
 };

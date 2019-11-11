@@ -19,3 +19,5 @@ export const Article = styled.article`
     min-height: 400px;
   }
 `;
+
+export const NoPost = styled.div``

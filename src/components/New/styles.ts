@@ -24,15 +24,13 @@ export const PostForm = styled.form`
   }
 
   button {
-    border: none;
-    color: black;
-    background: #ddd !important;
-    font-weight: 100;
-    text-transform: uppercase;
-    border-radius: 8px;
-    font-weight: 400;
-    display: inline-block;
-    -webkit-transition: all 0.3s ease 0s;
-    transition: all 0.3s ease 0s;
+    padding: 10px 20px;
+    border-radius: 4px;
+    border: 0;
+    background: #7159c1;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
   }
 `;

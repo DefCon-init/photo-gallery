@@ -7,50 +7,47 @@ import {
   UserList
 } from './styles';
 
-import { data } from "../../data/users";
 import { Link } from 'react-router-dom';
+import graphQlAPI from '../../utils/api';
 
 interface User {
-  email: string;
-  name: string;
-  image: string
+  id
+  email
 }
 
 const Users: React.FC = (): JSX.Element => {
+  //eslint-disable-next-line
   const [users, setUsers] = useState<User[]>([]);
 
   const loadRequest = async () => {
-    // const response = await api.get('posts');
-    const response = data;
-
-    setUsers(response);
+    const requestBody = {
+      query: `
+          query {
+            users {
+              id
+              email
+            }
+          }
+        `
+    };
+    const response = await graphQlAPI.post('', requestBody);
+    const { data: { data: { users } } } = response
+    setUsers(users);
   };
 
-  // const handleLike = (id: string) => {
-  //   api.post(`posts/${id}/like`);
-  // };
-
   useEffect(() => {
-    // const socket = io('http://localhost:3333');
-
-    // socket.on('post', (newPost: Post) => {
-    //   setFeed(f => [newPost, ...f]);
-    // });
-
-    // socket.on('like', (likedPost: Post) => {
-    //   setFeed((f: Post[]) => f.map((post: Post) => (post._id === likedPost._id ? likedPost : post)));
-    // });
-
     loadRequest();
   }, []);
 
   return (
     <>
       <UserList>
-        {users.map((user: User) => (
-          <Link to={`${user.email}/feed`}>
-            <UserCard key={user.email} name={user.name} image={user.image} />
-          </Link>
+        {!!users && users.map((user: User) => (
+          <div key={user.id}>
+            <Link to={`${user.email}/feed`}>
+              <UserCard name={user.email} />
+            </Link>
+          </div>
         ))}
       </UserList>
     </>

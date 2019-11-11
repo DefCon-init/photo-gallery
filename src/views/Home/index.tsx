@@ -12,7 +12,7 @@ const Home: React.FC = (): JSX.Element => {
       {!isAuthenticated && (
         <span>
           You are not logged in! Please
-          <Button onClick={() => loginWithRedirect({})}>
+          <Button onClick={() => loginWithRedirect({ appState: { targetUrl: '/feed' } })}>
             Log In
           </Button>
           to continue.

@@ -1,5 +1,4 @@
 import React from 'react';
-import history from '../../utils/history';
 
 import {
     Button,
@@ -11,20 +10,14 @@ import {
 
 interface User {
     name: string;
-    image: string;
-    key?: string;
+    image?: string;
 }
 
 const UserCard = (props: User) => {
-    const handleUserProfile = (id: string) => {
-        console.log('Name', id)
-        history.push('/')
-    };
-
     return (
         <Card>
-            <Button key={props.key} type="button" onClick={() => handleUserProfile(props.name)}>
-                <img src={props.image} alt={props.name} />
+            <Button type="button">
+                <img src={props.image || 'https://via.placeholder.com/300'} alt={props.name} />
                 <Header>
                     <UserInfo>
                         <Name>{props.name}</Name>

@@ -8,8 +8,7 @@ import { Container, MainHeader, Button, UL, Nav, LI } from './styles';
 import logo from '../../assets/logo.svg';
 
 const Header = () => {
-  const { isAuthenticated, loginWithRedirect, logout, user } = useAuth0();
-  console.log('LINK', !!user ? user.email + '/feed' : '/')
+  const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
   return (
     <MainHeader>
       <Container>
